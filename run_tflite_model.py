@@ -5,7 +5,6 @@ import numpy as np
 from keras.applications.resnet import preprocess_input
 import tensorflow as tf
 import argparse
-import imutils
 import time
 import cv2
 import draw_label
@@ -14,16 +13,15 @@ if __name__ == "__main__":
     # Load model
     print("[INFO] loading model...")
     interpreter = tf.lite.Interpreter(model_path='F:/CODE_PYCHARM/KhoaLuan/saved_model/ResNet50_Weather_epoch20.tflite')
-    interpreter.allocate_tensors()
 
     # Get input and output details
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-
     # Resize Tensor Shape
     interpreter.resize_tensor_input(input_details[0]['index'], (1, 244, 244, 3))
-    interpreter.resize_tensor_input(output_details[0]['index'], (1, 7))
+    #interpreter.resize_tensor_input(output_details[0]['index'], (1, 7))
     interpreter.allocate_tensors()
+
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
     print("Input Shape:", input_details[0]['shape'])
@@ -78,14 +76,23 @@ if __name__ == "__main__":
 
         # Process output data as needed
         predicted_weather = CATEGORIES[np.argmax(output_data)]
-        print("==========================================")
 
-        percentage = output_data.flatten()
-        print(percentage)
-        percentage = percentage[np.argmax(output_data)]
 
+        #percentage = output_data.flatten()
+        #print(percentage)
+        #percentage = percentage[np.argmax(output_data)]
+
+        output_data_float = tf.cast(output_data, dtype=tf.float32)
+        softmax_output = tf.nn.softmax(output_data_float)
+        print("===============================================")
+        print("softmax_output la: ", softmax_output)
+        predicted_class = np.argmax(softmax_output)
+        print("===============================================")
+        print("predicted_class la: ", predicted_class)
+        predicted_probability = np.max(softmax_output)*100
+        print(predicted_probability)
         # Adding the label on frame
-        draw_label.__draw_label(frame, 'Label: {}  {:.2f}%'.format(predicted_weather, percentage), (30, 30), (255, 255, 0))
+        draw_label.__draw_label(frame, 'Label: {}  {:.2f}%'.format(predicted_weather, predicted_probability), (30, 30), (255, 255, 0))
 
 
         # Display the resulting frame

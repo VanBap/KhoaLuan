@@ -2,7 +2,7 @@ from imutils.video import VideoStream
 from imutils.video import FPS
 from tensorflow import keras
 import numpy as np
-from keras.applications.resnet import preprocess_input
+from tensorflow.keras.applications.resnet import preprocess_input
 import tensorflow as tf
 import argparse
 import imutils
@@ -10,6 +10,7 @@ import time
 import cv2
 from keras.models import load_model
 import draw_label
+
 
 
 
