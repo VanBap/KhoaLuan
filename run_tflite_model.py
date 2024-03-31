@@ -12,13 +12,13 @@ import draw_label
 if __name__ == "__main__":
     # Load model
     print("[INFO] loading model...")
-    interpreter = tf.lite.Interpreter(model_path='F:/CODE_PYCHARM/KhoaLuan/saved_model/ResNet50_Weather_epoch20.tflite')
+    interpreter = tf.lite.Interpreter(model_path='C:/CODE_PYCHARM/KhoaLuan/saved_model/ResNet50_Weather_epoch20_optimizing_date14.tflite')
 
     # Get input and output details
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
     # Resize Tensor Shape
-    interpreter.resize_tensor_input(input_details[0]['index'], (1, 244, 244, 3))
+    interpreter.resize_tensor_input(input_details[0]['index'], (1, 224, 224, 3))
     #interpreter.resize_tensor_input(output_details[0]['index'], (1, 7))
     interpreter.allocate_tensors()
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     print("output details", output_details)
 
     # Load labels from label.txt file
-    label_file = "F:/CODE_PYCHARM/KhoaLuan/saved_model/label.txt"
+    label_file = "C:/saved_model/label.txt"
     CATEGORIES = []
 
     with open(label_file, "r") as file:
@@ -53,6 +53,9 @@ if __name__ == "__main__":
     if not (cap.isOpened()):
         print("Could not open video device")
 
+    # Initialize FPS counter
+    fps = FPS().start()
+
     # Fetch one frame at a time from your camera
     while (True):
         # Frame is a numpy array, that you can predict on
@@ -68,8 +71,14 @@ if __name__ == "__main__":
         # Set input tensor
         interpreter.set_tensor(input_details[0]['index'], input_data)
 
+        # Measure inference time and resource usage
+        start_time = time.time()
         # Perform inference
         interpreter.invoke()
+        inference_time = time.time() - start_time
+
+        # Update FPS counter
+        fps.update()
 
         # Get output tensor
         output_data = interpreter.get_tensor(output_details[0]['index'])
@@ -82,18 +91,22 @@ if __name__ == "__main__":
         #print(percentage)
         #percentage = percentage[np.argmax(output_data)]
 
-        output_data_float = tf.cast(output_data, dtype=tf.float32)
+        #output_data_float = tf.cast(output_data, dtype=tf.float32)
+        output_data_float = tf.cast(output_data, dtype=tf.float16)
+
         softmax_output = tf.nn.softmax(output_data_float)
-        print("===============================================")
-        print("softmax_output la: ", softmax_output)
+        #print("===============================================")
+        #print("softmax_output la: ", softmax_output)
         predicted_class = np.argmax(softmax_output)
-        print("===============================================")
-        print("predicted_class la: ", predicted_class)
+        #print("===============================================")
+        #print("predicted_class la: ", predicted_class)
         predicted_probability = np.max(softmax_output)*100
-        print(predicted_probability)
+        #print(predicted_probability)
         # Adding the label on frame
         draw_label.__draw_label(frame, 'Label: {}  {:.2f}%'.format(predicted_weather, predicted_probability), (30, 30), (255, 255, 0))
 
+        # Print inference time
+        print("Inference time:", inference_time, "seconds")
 
         # Display the resulting frame
         cv2.imshow("preview", frame)
@@ -102,6 +115,11 @@ if __name__ == "__main__":
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+
+    # Stop the FPS counter and print the final FPS
+    fps.stop()
+    print("FPS: {:.2f}".format(fps.fps()))
+    
     # When everything done, release the capture
     cap.release()
     cv2.destroyAllWindows()

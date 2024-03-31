@@ -1,6 +1,7 @@
 from imutils.video import VideoStream
 from imutils.video import FPS
 from tensorflow import keras
+import keras
 import numpy as np
 from tensorflow.keras.applications.resnet import preprocess_input
 import tensorflow as tf
@@ -17,7 +18,7 @@ import draw_label
 if __name__ == "__main__":
     # load model
     print("[INFO] loading model...")
-    model = tf.keras.models.load_model('F:/saved_model/ResNet50_Weather_epoch20.h5')
+    model = tf.keras.models.load_model('C:/saved_model/ResNet50_Weather_epoch20.h5')
 
     # labels array
     CATEGORIES=['CLOUDY','FOG','RAINY','SANDY','SHINE','SNOWY', 'SUNRISE' ]
