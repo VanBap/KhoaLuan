@@ -12,7 +12,7 @@ import draw_label
 if __name__ == "__main__":
     # Load model
     print("[INFO] loading model...")
-    interpreter = tf.lite.Interpreter(model_path='C:/CODE_PYCHARM/KhoaLuan/saved_model/ResNet50_Weather_epoch20_optimizing_date14.tflite')
+    interpreter = tf.lite.Interpreter(model_path='C:/CODE_PYCHARM/KhoaLuan/saved_model/ResNet50_checkpoint.tflite')
 
     # Get input and output details
     input_details = interpreter.get_input_details()
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
         # Preprocess input data if needed
         input_data = preprocess_input(input_data)
-
+        input_data = np.float32(input_data) # For ResNet50 .tflite model
         # Set input tensor
         interpreter.set_tensor(input_details[0]['index'], input_data)
 
@@ -75,7 +75,8 @@ if __name__ == "__main__":
         start_time = time.time()
         # Perform inference
         interpreter.invoke()
-        inference_time = time.time() - start_time
+        end_time = time.time()
+        inference_time = end_time - start_time
 
         # Update FPS counter
         fps.update()
@@ -96,10 +97,10 @@ if __name__ == "__main__":
 
         softmax_output = tf.nn.softmax(output_data_float)
         #print("===============================================")
-        #print("softmax_output la: ", softmax_output)
+        print("softmax_output la: ", softmax_output)
         predicted_class = np.argmax(softmax_output)
         #print("===============================================")
-        #print("predicted_class la: ", predicted_class)
+        print("predicted_class la: ", predicted_class)
         predicted_probability = np.max(softmax_output)*100
         #print(predicted_probability)
         # Adding the label on frame
