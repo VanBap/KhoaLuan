@@ -10,12 +10,14 @@ import argparse
 import time
 import cv2
 import draw_label
+MODEL_PATH='C:/CODE_PYCHARM/KhoaLuan/saved_model/EfficientNetB0_checkpoint_optimizing.tflite'
+LABEL_FILE = "C:/saved_model/label.txt"
 
 if __name__ == "__main__":
     # Load model
     print("[INFO] loading model...")
     interpreter = tf.lite.Interpreter(
-        model_path='C:/CODE_PYCHARM/KhoaLuan/saved_model/EfficientNetB0_Weather_epoch20_optimizing_date44.tflite')
+        model_path=MODEL_PATH)
 
     # Get input and output details
     input_details = interpreter.get_input_details()
@@ -39,7 +41,7 @@ if __name__ == "__main__":
     print("output details", output_details)
 
     # Load labels from label.txt file
-    label_file = "C:/saved_model/label.txt"
+    label_file = LABEL_FILE
     CATEGORIES = []
 
     with open(label_file, "r") as file:
