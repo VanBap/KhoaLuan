@@ -10,7 +10,7 @@ import argparse
 import time
 import cv2
 import draw_label
-MODEL_PATH='C:/CODE_PYCHARM/KhoaLuan/saved_model/EfficientNetB0_checkpoint_optimizing.tflite'
+MODEL_PATH='C:/CODE_PYCHARM/KhoaLuan/saved_model/EfficientNetB0_checkpoint_no_optimizing.tflite'
 LABEL_FILE = "C:/saved_model/label.txt"
 
 if __name__ == "__main__":
@@ -58,6 +58,11 @@ if __name__ == "__main__":
     if not (cap.isOpened()):
         print("Could not open video device")
 
+    inference_time = 0
+    average_inference_time = 0
+    sum_inference_time = 0
+    number_sample = 0
+
     # Initialize FPS counter
     fps = FPS().start()
 
@@ -80,9 +85,10 @@ if __name__ == "__main__":
         start_time = time.time()
         # Perform inference
         interpreter.invoke()
+        number_sample += 1
         end_time = time.time()
         inference_time = end_time - start_time
-
+        sum_inference_time += inference_time
         # Update FPS counter
         fps.update()
 
@@ -96,23 +102,22 @@ if __name__ == "__main__":
         # print(percentage)
         # percentage = percentage[np.argmax(output_data)]
 
-        # output_data_float = tf.cast(output_data, dtype=tf.float32)
+        #output_data_float = tf.cast(output_data, dtype=tf.float32)
         output_data_float = tf.cast(output_data, dtype=tf.float16)
 
         softmax_output = tf.nn.softmax(output_data_float)
-        # print("===============================================")
-        print("softmax_output la: ", softmax_output)
+
         predicted_class = np.argmax(softmax_output)
-        # print("===============================================")
-        print("predicted_class la: ", predicted_class)
+
         predicted_probability = np.max(softmax_output) * 100
-        # print(predicted_probability)
+
         # Adding the label on frame
-        draw_label.__draw_label(frame, 'Label: {}  {:.2f}%'.format(predicted_weather, predicted_probability), (30, 30),
-                                (255, 255, 0))
+        # draw_label.__draw_label(frame, 'Label: {}  {:.2f}%'.format(predicted_weather, predicted_probability), (30, 30),(255, 255, 0))
+
+        draw_label.__draw_label(frame, 'Label: {}'.format(predicted_weather), (30, 30),(255, 255, 0))
 
         # Print inference time
-        print("Inference time:", inference_time, "seconds")
+        print("Inference time: {:.3f} seconds".format(inference_time))
 
         # Display the resulting frame
         cv2.imshow("preview", frame)
@@ -120,7 +125,8 @@ if __name__ == "__main__":
         # Waits for a user input to quit the application
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
+    average_inference_time = sum_inference_time / number_sample
+    print("average inference time: {:.3f} seconds".format(average_inference_time))
     # Stop the FPS counter and print the final FPS
     fps.stop()
     print("FPS: {:.2f}".format(fps.fps()))
